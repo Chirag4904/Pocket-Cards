@@ -211,19 +211,26 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     ),
                   ),
                 const Spacer(),
-                AnimatedSize(
+                // Animate the width itself (not AnimatedSize, which clips the
+                // full-width pill to a hard-edged box mid-animation). The
+                // label swaps in only once there's room for it.
+                TweenAnimationBuilder<double>(
+                  tween: Tween(end: _isLast ? 180 : 64),
                   duration: AppMotion.medium,
                   curve: AppMotion.emphasized,
-                  child: SizedBox(
-                    width: _isLast ? 180 : 64,
-                    child: GradientButton(
-                      height: 64,
-                      label: _isLast ? "Let's go" : '',
-                      icon: _isLast ? null : Icons.arrow_forward_rounded,
-                      gradient: LinearGradient(colors: [a, b]),
-                      onPressed: _next,
-                    ),
-                  ),
+                  builder: (context, width, _) {
+                    final roomForLabel = _isLast && width > 140;
+                    return SizedBox(
+                      width: width,
+                      child: GradientButton(
+                        height: 64,
+                        label: roomForLabel ? "Let's go" : '',
+                        icon: roomForLabel ? null : Icons.arrow_forward_rounded,
+                        gradient: LinearGradient(colors: [a, b]),
+                        onPressed: _next,
+                      ),
+                    );
+                  },
                 ),
               ]),
             ),

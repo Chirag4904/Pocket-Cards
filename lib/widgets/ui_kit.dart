@@ -91,20 +91,25 @@ class GradientButton extends StatelessWidget {
             ),
           ],
         ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            if (icon != null) Icon(icon, color: AppColors.ink, size: 22),
-            if (icon != null && label.isNotEmpty) const SizedBox(width: 10),
-            if (label.isNotEmpty)
-              Flexible(
-                child: Text(label,
-                    maxLines: 1,
-                    overflow: TextOverflow.fade,
-                    softWrap: false,
-                    style: AppText.button.copyWith(color: AppColors.ink)),
-              ),
-          ],
+        // Cross-fade when the label/icon changes instead of popping.
+        child: AnimatedSwitcher(
+          duration: AppMotion.fast,
+          child: Row(
+            key: ValueKey('$label|${icon?.codePoint}'),
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              if (icon != null) Icon(icon, color: AppColors.ink, size: 22),
+              if (icon != null && label.isNotEmpty) const SizedBox(width: 10),
+              if (label.isNotEmpty)
+                Flexible(
+                  child: Text(label,
+                      maxLines: 1,
+                      overflow: TextOverflow.fade,
+                      softWrap: false,
+                      style: AppText.button.copyWith(color: AppColors.ink)),
+                ),
+            ],
+          ),
         ),
       ),
     );

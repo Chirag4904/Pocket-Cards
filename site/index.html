@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0b0d0e">
+  <title>PocketCards — Your cards, close at hand.</title>
+  <meta name="description" content="A private wallet for your credit cards. Keep card details, bill reminders and encrypted backups on your phone.">
+  <meta property="og:title" content="PocketCards — Your cards, close at hand.">
+  <meta property="og:description" content="A private, offline wallet for your credit cards.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://pocketcards.domslittlestudio.cloud/">
+  <meta property="og:image" content="https://pocketcards.domslittlestudio.cloud/assets/social.jpg">
+  <link rel="canonical" href="https://pocketcards.domslittlestudio.cloud/">
+  <link rel="icon" href="assets/icon.png">
+  <link rel="preload" href="assets/grotesk-bold.woff" as="font" type="font/woff" crossorigin>
+  <link rel="stylesheet" href="styles.css">
+  <script defer src="script.js"></script>
+</head>
+<body>
+  <a class="skip" href="#main">Skip to content</a>
+  <header class="header wrap">
+    <a href="./" class="wordmark"><img src="assets/icon.png" width="37" height="37" alt="">PocketCards</a>
+    <nav aria-label="Main navigation"><a href="#features">Features</a><a href="#privacy">Privacy</a></nav>
+    <a class="nav-action" href="#demo">Try the stack <span aria-hidden="true">↗</span></a>
+  </header>
+  <main id="main">
+    <section class="hero wrap" aria-labelledby="hero-title">
+      <div class="hero-copy">
+        <p class="eyebrow"><span class="signal"></span> THE OFFLINE CARD WALLET</p>
+        <h1 id="hero-title">Your cards,<br><em>close at hand.</em></h1>
+        <p class="intro">A private pocket for all your credit cards. Pull up your details, set a bill reminder, and keep it all on your phone.</p>
+        <a class="button" href="#demo">Try the card stack <span aria-hidden="true">↗</span></a>
+      </div>
+      <div class="hero-art" aria-hidden="true">
+        <div class="art-caption">WALLET PREVIEW</div>
+        <div class="orbit orbit-outer"></div><div class="orbit orbit-inner"></div>
+        <div class="cross cross-first">+</div><div class="cross cross-second">+</div>
+        <div class="phone"><img src="assets/wallet.webp" width="545" height="1040" alt="" fetchpriority="high"></div>
+        <img class="hero-card hero-card-under" src="assets/fern.webp" width="720" height="454" alt="">
+        <img class="hero-card hero-card-top" src="assets/nova.webp" width="720" height="454" alt="" fetchpriority="high">
+      </div>
+    </section>
+    <div class="proof"><div class="wrap proof-inner">
+      <span>◆ <b>Works offline</b></span><span>◆ <b>Encrypted storage</b></span><span>◆ <b>Device unlock</b></span><span>◆ <b>No account needed</b></span>
+    </div></div>
+
+    <section class="demo wrap" id="demo" aria-labelledby="demo-title">
+      <div class="demo-copy">
+        <p class="eyebrow"><span class="signal"></span> INTERACTIVE DEMO</p>
+        <h2 id="demo-title">Make the<br>stack yours.</h2>
+        <p>Give each card a look of its own. Pick a skin below to see how it feels. In the app, you can even use one of your photos.</p>
+        <div class="swatches" role="group" aria-label="Card skins">
+          <button type="button" class="swatch is-active" data-skin="nova" data-label="Aurora" style="--swatch:linear-gradient(130deg,#6756d9,#28b5ab)" aria-label="Aurora" aria-pressed="true"></button>
+          <button type="button" class="swatch" data-skin="orbit" data-label="Orbit" style="--swatch:linear-gradient(130deg,#ff5965,#ffbd72)" aria-label="Orbit" aria-pressed="false"></button>
+          <button type="button" class="swatch" data-skin="lumen" data-label="Lumen" style="--swatch:linear-gradient(130deg,#fa68be,#827bfb)" aria-label="Lumen" aria-pressed="false"></button>
+          <button type="button" class="swatch" data-skin="fern" data-label="Fern" style="--swatch:linear-gradient(130deg,#087f70,#78e3af)" aria-label="Fern" aria-pressed="false"></button>
+          <button type="button" class="swatch" data-skin="mono" data-label="Monolith" style="--swatch:linear-gradient(130deg,#191d21,#a3a6ad)" aria-label="Monolith" aria-pressed="false"></button>
+        </div>
+        <p class="skin-label" id="skin-label" aria-live="polite">Skin · Aurora</p>
+      </div>
+      <div class="demo-stage">
+        <div class="stage-heading"><span>CARD STUDIO</span><span>DEMO DATA</span></div>
+        <div class="sample-stack">
+          <img src="assets/mono.webp" class="sample-back" width="720" height="454" alt="" loading="lazy">
+          <img src="assets/nova.webp" id="sample-card" width="720" height="454" alt="Sample card with the Aurora skin">
+        </div>
+      </div>
+    </section>
+    <section class="features wrap" id="features" aria-labelledby="feature-title">
+      <p class="eyebrow"><span class="signal"></span> INSIDE THE APP</p>
+      <h2 id="feature-title">Small details.<br>Better card days.</h2>
+      <div class="feature-grid">
+        <article class="feature">
+          <div class="feature-text"><h3>Tap to add.</h3><p>Scan a supported card with NFC or enter the details yourself.</p></div>
+          <img src="assets/scan.webp" alt="PocketCards NFC screen prompting you to tap your card" loading="lazy" width="590" height="656">
+        </article>
+        <article class="feature">
+          <div class="feature-text"><h3>Stay ahead of bills.</h3><p>Pick a day for each card’s monthly bill and get a reminder on your phone.</p></div>
+          <img src="assets/reminder.webp" alt="PocketCards bill reminder settings with advance notice options" loading="lazy" width="590" height="665">
+        </article>
+      </div>
+    </section>
+
+    <section class="privacy wrap" id="privacy" aria-labelledby="privacy-title">
+      <div class="privacy-panel">
+        <div>
+          <p class="eyebrow"><span class="signal"></span> PRIVACY BY DESIGN</p>
+          <h2 id="privacy-title">Your cards<br>stay yours.</h2>
+          <p>PocketCards keeps your wallet encrypted on your phone. Unlock it with Face ID, fingerprint, or your device PIN.</p>
+        </div>
+        <dl>
+          <div><dt>Masked by default</dt><dd>Details stay hidden until you reveal them. Copied details clear from the clipboard after 30 seconds.</dd></div>
+          <div><dt>Share a card image</dt><dd>The card number and CVV are hidden from the image by default.</dd></div>
+          <div><dt>Take a backup with you</dt><dd>Export a password-protected wallet file and choose where to keep it.</dd></div>
+        </dl>
+      </div>
+    </section>
+  </main>
+  <footer class="footer wrap">
+    <a href="./" class="wordmark"><img src="assets/icon.png" width="34" height="34" alt="">PocketCards</a>
+    <p>Made by Dom’s Little Studio.</p>
+    <a class="top-link" href="#main">Back to top ↑</a>
+  </footer>
+</body>
+</html>

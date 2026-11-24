@@ -21,6 +21,12 @@ class CardProvider extends ChangeNotifier {
   double _cardBalance = 0;
   String _skinId = CardSkins.defaultId;
   LogoStyle _logoStyle = LogoStyle.boxed;
+  int? _billDay;
+  int? _remindDaysBefore;
+
+  /// Bumped when fields are filled from outside the text fields (an NFC
+  /// scan), so the form can rebuild them with the new values.
+  int _fillGeneration = 0;
 
   // Getter methods to access the fields
   String get cardNumber => _cardNumber;
@@ -33,6 +39,24 @@ class CardProvider extends ChangeNotifier {
   int get cardBG => _cardBG;
   String get skinId => _skinId;
   LogoStyle get logoStyle => _logoStyle;
+  int? get billDay => _billDay;
+  int? get remindDaysBefore => _remindDaysBefore;
+  int get fillGeneration => _fillGeneration;
+
+  void setBilling(int? billDay, int? remindDaysBefore) {
+    _billDay = billDay;
+    _remindDaysBefore = billDay == null ? null : remindDaysBefore;
+    notifyListeners();
+  }
+
+  /// Fills what a contactless scan could read. Empty values are left alone.
+  void fillFromScan({required String number, String? expiry, String? holder}) {
+    _cardNumber = number;
+    if (expiry != null && expiry.isNotEmpty) _expiryDate = expiry;
+    if (holder != null && holder.isNotEmpty) _cardHolderName = holder;
+    _fillGeneration++;
+    notifyListeners();
+  }
 
   void setLogoStyle(LogoStyle style) {
     _logoStyle = style;
@@ -95,6 +119,8 @@ class CardProvider extends ChangeNotifier {
     _cardBG = 0;
     _skinId = CardSkins.defaultId;
     _logoStyle = LogoStyle.boxed;
+    _billDay = null;
+    _remindDaysBefore = null;
 
     notifyListeners();
   }

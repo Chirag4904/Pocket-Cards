@@ -195,7 +195,7 @@ class _PasswordSheetState extends State<_PasswordSheet> {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
-          borderSide: const BorderSide(color: AppColors.iris, width: 1.5),
+          borderSide: const BorderSide(color: AppColors.lime, width: 1.5),
         ),
       );
 

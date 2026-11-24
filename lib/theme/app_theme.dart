@@ -3,8 +3,8 @@ import 'package:flutter/services.dart';
 
 /// Design tokens for Pocket Cards.
 ///
-/// One dark, ink-toned palette with a single signature gradient
-/// (iris -> violet -> pink) used for primary actions and brand moments.
+/// One dark, ink-toned palette with a single lime accent used for
+/// primary actions and brand moments.
 class AppColors {
   AppColors._();
 
@@ -18,16 +18,18 @@ class AppColors {
   static const textSecondary = Color(0xFF9AA3B5);
   static const textTertiary = Color(0xFF5E6678);
 
-  static const iris = Color(0xFF7C9CFF);
-  static const violet = Color(0xFFB07CFF);
-  static const pink = Color(0xFFFF7CC8);
-  static const lime = Color(0xFFC8FF5A);
+  /// Signature accent: a bright lime used sparingly for primary actions,
+  /// focus states and small highlights. Text on it is always [ink].
+  static const lime = Color(0xFFD4F46A);
+  static const limeDeep = Color(0xFFB4E24A);
+  static const mint = Color(0xFF4FE0B0); // secondary glow / supporting accent
+  static const pink = Color(0xFFFF7CC8); // warnings ("includes full number")
   static const danger = Color(0xFFFF5A6E);
 
   static const brandGradient = LinearGradient(
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
-    colors: [iris, violet, pink],
+    colors: [Color(0xFFE4FA96), lime, limeDeep],
   );
 }
 
@@ -114,11 +116,13 @@ class AppText {
 
 ThemeData buildAppTheme() {
   final scheme = ColorScheme.fromSeed(
-    seedColor: AppColors.iris,
+    seedColor: AppColors.lime,
     brightness: Brightness.dark,
   ).copyWith(
-    primary: AppColors.iris,
-    secondary: AppColors.violet,
+    primary: AppColors.lime,
+    onPrimary: AppColors.ink,
+    secondary: AppColors.mint,
+    onSecondary: AppColors.ink,
     surface: AppColors.surface,
     error: AppColors.danger,
   );
@@ -156,8 +160,8 @@ ThemeData buildAppTheme() {
       ),
     ),
     textSelectionTheme: const TextSelectionThemeData(
-      cursorColor: AppColors.iris,
-      selectionHandleColor: AppColors.iris,
+      cursorColor: AppColors.lime,
+      selectionHandleColor: AppColors.lime,
     ),
     pageTransitionsTheme: const PageTransitionsTheme(builders: {
       TargetPlatform.android: CupertinoPageTransitionsBuilder(),

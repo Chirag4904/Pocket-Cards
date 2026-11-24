@@ -21,21 +21,21 @@ const _pages = [
     '01 — OFFLINE',
     'No internet.\nNo problem.',
     "Pocket Cards never connects to a server. There's nothing to hack because nothing is sent.",
-    [Color(0xFF7C9CFF), Color(0xFF5B3FD1)],
+    [Color(0xFFD4F46A), Color(0xFF7FC93E)],
   ),
   _Page(
     Icons.smartphone_rounded,
     '02 — ON-DEVICE',
     'Your cards live\non your phone.',
     'Everything is encrypted in your phone\'s secure storage. No accounts, no cloud, no tracking.',
-    [Color(0xFFFF7CC8), Color(0xFFB07CFF)],
+    [Color(0xFF4FE0B0), Color(0xFF1F9C84)],
   ),
   _Page(
     Icons.fingerprint_rounded,
     '03 — LOCKED',
     'Only you\nget in.',
     'Face ID, fingerprint or your phone PIN guards the app every time you open it.',
-    [Color(0xFFC8FF5A), Color(0xFF10B5A4)],
+    [Color(0xFFD4F46A), Color(0xFF10B5A4)],
   ),
 ];
 

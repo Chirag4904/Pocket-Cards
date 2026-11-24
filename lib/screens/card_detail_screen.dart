@@ -8,6 +8,8 @@ import '../provider/wallet_provider.dart';
 import '../services/app_services.dart';
 import '../theme/app_theme.dart';
 import '../theme/card_skins.dart';
+import '../services/bill_reminders.dart';
+import '../widgets/bill_reminder_picker.dart';
 import '../widgets/skin_picker.dart';
 import 'share_card_sheet.dart';
 import '../widgets/ui_kit.dart';
@@ -45,6 +47,37 @@ class _CardDetailScreenState extends State<CardDetailScreen> {
   Future<void> _copy(String label, String value) async {
     await SecureClipboard.copy(value);
     _toast('$label copied · clears in 30s');
+  }
+
+  Future<void> _editReminder(WalletCard card) async {
+    final wallet = context.read<WalletProvider>();
+    Haptics.tap();
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      builder: (context) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
+          child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
+            const Text('Bill reminder', style: AppText.title),
+            const SizedBox(height: 6),
+            const Text('Optional. Get a nudge before this card\'s monthly bill.', style: AppText.body),
+            const SizedBox(height: 18),
+            Consumer<WalletProvider>(
+              builder: (context, w, _) {
+                final current = w.byId(card.id) ?? card;
+                return BillReminderPicker(
+                  billDay: current.billDay,
+                  remindDaysBefore: current.remindDaysBefore,
+                  onChanged: (day, lead) =>
+                      wallet.updateBilling(card.id, billDay: day, remindDaysBefore: lead),
+                );
+              },
+            ),
+          ]),
+        ),
+      ),
+    );
   }
 
   Future<void> _changeLook(WalletCard card) async {
@@ -252,6 +285,28 @@ class _CardDetailScreenState extends State<CardDetailScreen> {
                     ),
                   ),
                 ]),
+              ),
+              const SizedBox(height: 12),
+              Entrance(
+                delay: const Duration(milliseconds: 420),
+                child: Pressable(
+                  onTap: () => _editReminder(card),
+                  child: _InfoTile(
+                    label: 'Bill reminder',
+                    value: card.billDay == null
+                        ? 'Add a bill date'
+                        : 'Bill on the ${BillReminders.ordinal(card.billDay!)}'
+                            '${card.hasReminder ? ' · ${BillReminders.leadLabel(card.remindDaysBefore!).toLowerCase()}' : ' · no reminder'}',
+                    muted: card.billDay == null,
+                    trailing: Icon(
+                      card.hasReminder
+                          ? Icons.notifications_active_outlined
+                          : Icons.notifications_none_rounded,
+                      size: 20,
+                      color: card.hasReminder ? AppColors.lime : AppColors.textTertiary,
+                    ),
+                  ),
+                ),
               ),
               const SizedBox(height: 22),
               const Text(

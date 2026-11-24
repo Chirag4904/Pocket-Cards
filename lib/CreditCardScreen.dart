@@ -196,11 +196,11 @@ class _CreditCardScreenState extends State<CreditCardScreen> {
         const Positioned(
             top: -140,
             left: -120,
-            child: GlowOrb(color: AppColors.iris, size: 380, opacity: 0.22)),
+            child: GlowOrb(color: AppColors.lime, size: 380, opacity: 0.12)),
         const Positioned(
             top: -60,
             right: -160,
-            child: GlowOrb(color: AppColors.pink, size: 360, opacity: 0.14)),
+            child: GlowOrb(color: AppColors.mint, size: 360, opacity: 0.08)),
         SafeArea(
           bottom: false,
           child: CustomScrollView(
@@ -420,7 +420,7 @@ class _SummaryTile extends StatelessWidget {
                 gradient: AppColors.brandGradient,
                 boxShadow: [
                   BoxShadow(
-                    color: AppColors.violet.withValues(alpha: 0.35),
+                    color: AppColors.lime.withValues(alpha: 0.28),
                     blurRadius: 20,
                     offset: const Offset(0, 8),
                   ),

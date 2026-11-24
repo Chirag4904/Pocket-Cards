@@ -29,6 +29,8 @@ class WalletCard {
     required this.limit,
     this.pinned = false,
     this.logoStyle = LogoStyle.boxed,
+    this.billDay,
+    this.remindDaysBefore,
   });
 
   final String id;
@@ -41,6 +43,15 @@ class WalletCard {
   final double limit;
   final bool pinned;
   final LogoStyle logoStyle;
+
+  /// Day of the month the bill (statement) is generated, 1–31. Optional.
+  final int? billDay;
+
+  /// Days before [billDay] to send a reminder (0 = on the day). `null` means
+  /// no reminder. Only meaningful when [billDay] is set.
+  final int? remindDaysBefore;
+
+  bool get hasReminder => billDay != null && remindDaysBefore != null;
 
   String get digits => number.replaceAll(RegExp(r'\D'), '');
 
@@ -81,6 +92,24 @@ class WalletCard {
         limit: limit,
         pinned: pinned ?? this.pinned,
         logoStyle: logoStyle ?? this.logoStyle,
+        billDay: billDay,
+        remindDaysBefore: remindDaysBefore,
+      );
+
+  /// Sets or clears the bill date and reminder (pass `null` to clear).
+  WalletCard withBilling({required int? billDay, required int? remindDaysBefore}) => WalletCard(
+        id: id,
+        number: number,
+        holder: holder,
+        expiry: expiry,
+        cvv: cvv,
+        bank: bank,
+        skinId: skinId,
+        limit: limit,
+        pinned: pinned,
+        logoStyle: logoStyle,
+        billDay: billDay,
+        remindDaysBefore: billDay == null ? null : remindDaysBefore,
       );
 
   factory WalletCard.fromMap(Map<String, String> m, {required String fallbackId}) {
@@ -95,7 +124,19 @@ class WalletCard {
       limit: double.tryParse(m['card_balance'] ?? '') ?? 0,
       pinned: m['pinned'] == 'true',
       logoStyle: LogoStyle.parse(m['logo_style']),
+      billDay: _day(m['bill_day']),
+      remindDaysBefore: _day(m['bill_day']) == null ? null : _remind(m['remind_before']),
     );
+  }
+
+  static int? _day(String? v) {
+    final d = int.tryParse(v ?? '');
+    return d != null && d >= 1 && d <= 31 ? d : null;
+  }
+
+  static int? _remind(String? v) {
+    final d = int.tryParse(v ?? '');
+    return d != null && d >= 0 && d <= 27 ? d : null;
   }
 
   Map<String, String> toMap() => {
@@ -111,5 +152,8 @@ class WalletCard {
         'card_balance': limit.toString(),
         'pinned': pinned.toString(),
         'logo_style': logoStyle.name,
+        if (billDay != null) 'bill_day': billDay.toString(),
+        if (billDay != null && remindDaysBefore != null)
+          'remind_before': remindDaysBefore.toString(),
       };
 }

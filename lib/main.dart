@@ -8,8 +8,10 @@ import 'package:pocket_cards/provider/wallet_provider.dart';
 import 'package:provider/provider.dart';
 
 import 'CreditCardScreen.dart';
+import 'demo.dart';
 import 'screens/onboarding_screen.dart';
 import 'services/app_services.dart';
+import 'services/bill_reminders.dart';
 import 'theme/app_theme.dart';
 import 'theme/card_skins.dart';
 import 'widgets/ui_kit.dart';
@@ -21,7 +23,8 @@ void main() async {
     statusBarIconBrightness: Brightness.light,
     systemNavigationBarColor: AppColors.ink,
   ));
-  await Future.wait([AppPrefs.init(), CardSkins.init()]);
+  await Future.wait([AppPrefs.init(), CardSkins.init(), BillReminders.init()]);
+  if (kDemoMode) AppPrefs.name.value = kDemoName;
   runApp(
     MultiProvider(
       providers: [
@@ -44,15 +47,17 @@ class MyApp extends StatelessWidget {
       title: 'Pocket Cards',
       debugShowCheckedModeBanner: false,
       theme: buildAppTheme(),
-      home: showOnboarding
-          ? Builder(
-              builder: (context) => OnboardingScreen(
-                onDone: () => Navigator.of(context).pushReplacement(
-                  FadeRoute(builder: (_) => const BiometricAuthScreen()),
-                ),
-              ),
-            )
-          : const BiometricAuthScreen(),
+      home: kDemoMode
+          ? const CreditCardScreen()
+          : showOnboarding
+              ? Builder(
+                  builder: (context) => OnboardingScreen(
+                    onDone: () => Navigator.of(context).pushReplacement(
+                      FadeRoute(builder: (_) => const BiometricAuthScreen()),
+                    ),
+                  ),
+                )
+              : const BiometricAuthScreen(),
     );
   }
 }
@@ -67,9 +72,9 @@ class BiometricAuthScreen extends StatefulWidget {
 class _BiometricAuthScreenState extends State<BiometricAuthScreen>
     with SingleTickerProviderStateMixin {
   final LocalAuthentication auth = LocalAuthentication();
-  late final AnimationController _pulse =
-      AnimationController(vsync: this, duration: const Duration(milliseconds: 1800))
-        ..repeat();
+  late final AnimationController _pulse = AnimationController(
+      vsync: this, duration: const Duration(milliseconds: 1800))
+    ..repeat();
   bool _busy = false;
   bool _failed = false;
 
@@ -137,8 +142,14 @@ class _BiometricAuthScreenState extends State<BiometricAuthScreen>
   Widget build(BuildContext context) {
     return Scaffold(
       body: Stack(children: [
-        const Positioned(top: -160, left: -120, child: GlowOrb(color: AppColors.iris, size: 460, opacity: 0.25)),
-        const Positioned(bottom: -200, right: -160, child: GlowOrb(color: AppColors.pink, size: 480, opacity: 0.16)),
+        const Positioned(
+            top: -160,
+            left: -120,
+            child: GlowOrb(color: AppColors.lime, size: 460, opacity: 0.12)),
+        const Positioned(
+            bottom: -200,
+            right: -160,
+            child: GlowOrb(color: AppColors.mint, size: 480, opacity: 0.08)),
         SafeArea(
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 28),
@@ -165,7 +176,9 @@ class _BiometricAuthScreenState extends State<BiometricAuthScreen>
                                 decoration: BoxDecoration(
                                   shape: BoxShape.circle,
                                   border: Border.all(
-                                    color: (_failed ? AppColors.danger : AppColors.iris),
+                                    color: (_failed
+                                        ? AppColors.danger
+                                        : AppColors.lime),
                                     width: 1.5,
                                   ),
                                 ),
@@ -173,7 +186,8 @@ class _BiometricAuthScreenState extends State<BiometricAuthScreen>
                             );
                           }),
                         Transform.scale(
-                          scale: 1 + math.sin(_pulse.value * 2 * math.pi) * 0.025,
+                          scale:
+                              1 + math.sin(_pulse.value * 2 * math.pi) * 0.025,
                           child: AnimatedContainer(
                             duration: AppMotion.medium,
                             width: 110,
@@ -181,17 +195,23 @@ class _BiometricAuthScreenState extends State<BiometricAuthScreen>
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
                               gradient: _failed
-                                  ? const LinearGradient(colors: [AppColors.danger, AppColors.pink])
+                                  ? const LinearGradient(colors: [
+                                      AppColors.danger,
+                                      AppColors.pink
+                                    ])
                                   : AppColors.brandGradient,
                               boxShadow: [
                                 BoxShadow(
-                                  color: (_failed ? AppColors.danger : AppColors.violet)
+                                  color: (_failed
+                                          ? AppColors.danger
+                                          : AppColors.lime)
                                       .withValues(alpha: 0.5),
                                   blurRadius: 40,
                                 ),
                               ],
                             ),
-                            child: const Icon(Icons.fingerprint_rounded, size: 56, color: AppColors.ink),
+                            child: const Icon(Icons.fingerprint_rounded,
+                                size: 56, color: AppColors.ink),
                           ),
                         ),
                       ]);
@@ -202,13 +222,17 @@ class _BiometricAuthScreenState extends State<BiometricAuthScreen>
               const SizedBox(height: 36),
               Row(mainAxisAlignment: MainAxisAlignment.center, children: [
                 Text('pocket', style: AppText.display.copyWith(fontSize: 40)),
-                Text('.', style: AppText.display.copyWith(fontSize: 40, color: AppColors.iris)),
+                Text('.',
+                    style: AppText.display
+                        .copyWith(fontSize: 40, color: AppColors.lime)),
               ]),
               const SizedBox(height: 10),
               AnimatedSwitcher(
                 duration: AppMotion.medium,
                 child: Text(
-                  _failed ? "That didn't work. Try again." : 'Your cards are locked',
+                  _failed
+                      ? "That didn't work. Try again."
+                      : 'Your cards are locked',
                   key: ValueKey(_failed),
                   textAlign: TextAlign.center,
                   style: AppText.body.copyWith(
@@ -224,10 +248,12 @@ class _BiometricAuthScreenState extends State<BiometricAuthScreen>
               ),
               const SizedBox(height: 14),
               const Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-                Icon(Icons.wifi_off_rounded, size: 13, color: AppColors.textTertiary),
+                Icon(Icons.wifi_off_rounded,
+                    size: 13, color: AppColors.textTertiary),
                 SizedBox(width: 6),
                 Text('Offline · on-device · encrypted',
-                    style: TextStyle(color: AppColors.textTertiary, fontSize: 12)),
+                    style:
+                        TextStyle(color: AppColors.textTertiary, fontSize: 12)),
               ]),
               const SizedBox(height: 20),
             ]),

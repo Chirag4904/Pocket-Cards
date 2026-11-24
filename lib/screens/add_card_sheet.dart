@@ -5,12 +5,15 @@ import 'package:provider/provider.dart';
 import '../provider/card_provider.dart';
 import '../provider/wallet_provider.dart';
 import '../services/app_services.dart';
+import '../services/card_scanner.dart';
 import '../theme/app_theme.dart';
 import '../theme/card_skins.dart';
 import '../utils/formatters.dart';
+import '../widgets/bill_reminder_picker.dart';
 import '../widgets/skin_picker.dart';
 import '../widgets/ui_kit.dart';
 import '../widgets/wallet_card_view.dart';
+import 'scan_card_sheet.dart';
 
 Future<void> showAddCardSheet(BuildContext context) async {
   final form = context.read<CardProvider>()..clearFields();
@@ -34,13 +37,41 @@ class _AddCardSheetState extends State<_AddCardSheet> {
   final _formKey = GlobalKey<FormState>();
   final _cvvFocus = FocusNode();
   bool _saving = false;
+  bool _canScan = false;
+  String? _scanNote;
 
   @override
   void initState() {
     super.initState();
     // Flip the preview to its back while the CVV is being typed.
     _cvvFocus.addListener(() => setState(() {}));
+    CardScanner.isSupported().then((ok) {
+      if (mounted && ok) setState(() => _canScan = true);
+    });
   }
+
+  Future<void> _scan(CardProvider form) async {
+    Haptics.tap();
+    FocusScope.of(context).unfocus();
+    final card = await showCardScanSheet(context);
+    if (card == null || !mounted) return;
+    form.fillFromScan(
+      number: card.number.replaceAllMapped(RegExp(r'.{4}'), (m) => '${m.group(0)} ').trim(),
+      expiry: card.expiry,
+      holder: card.holder,
+    );
+    final missing = [
+      if (card.holder == null) 'name',
+      if (card.expiry == null) 'expiry',
+      'CVV',
+      if (form.selectedBank.isEmpty) 'bank',
+    ];
+    setState(() => _scanNote = 'Read from the card. Add the ${_list(missing)} yourself.');
+  }
+
+  static String _list(List<String> items) => items.length == 1
+      ? items.first
+      : '${items.sublist(0, items.length - 1).join(', ')} and ${items.last}';
 
   @override
   void dispose() {
@@ -58,14 +89,14 @@ class _AddCardSheetState extends State<_AddCardSheet> {
       hintText: hint,
       labelStyle: const TextStyle(color: AppColors.textSecondary),
       hintStyle: const TextStyle(color: AppColors.textTertiary),
-      floatingLabelStyle: const TextStyle(color: AppColors.iris),
+      floatingLabelStyle: const TextStyle(color: AppColors.lime),
       prefixIcon: Icon(icon, color: AppColors.textSecondary, size: 20),
       filled: true,
       fillColor: AppColors.surfaceHigh,
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
       border: border(Colors.transparent),
       enabledBorder: border(AppColors.stroke),
-      focusedBorder: border(AppColors.iris, 1.5),
+      focusedBorder: border(AppColors.lime, 1.5),
       errorBorder: border(AppColors.danger),
       focusedErrorBorder: border(AppColors.danger, 1.5),
     );
@@ -86,6 +117,8 @@ class _AddCardSheetState extends State<_AddCardSheet> {
           skinId: form.skinId,
           limit: form.cardBalance,
           logoStyle: form.logoStyle,
+          billDay: form.billDay,
+          remindDaysBefore: form.remindDaysBefore,
         );
     Haptics.flip();
     if (mounted) Navigator.pop(context);
@@ -140,6 +173,19 @@ class _AddCardSheetState extends State<_AddCardSheet> {
             SkinPicker(selected: form.skinId, onChanged: form.setSkinId),
             const SizedBox(height: 18),
             const SectionLabel('Card details'),
+            if (_canScan) ...[
+              _ScanButton(onTap: () => _scan(form)),
+              if (_scanNote != null)
+                Padding(
+                  padding: const EdgeInsets.only(top: 10, left: 4),
+                  child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                    const Icon(Icons.check_circle_rounded, size: 14, color: AppColors.lime),
+                    const SizedBox(width: 6),
+                    Expanded(child: Text(_scanNote!, style: AppText.mono.copyWith(height: 1.4))),
+                  ]),
+                ),
+              const SizedBox(height: 14),
+            ],
             Form(
               key: _formKey,
               child: Column(children: [
@@ -179,6 +225,7 @@ class _AddCardSheetState extends State<_AddCardSheet> {
                 ),
                 const SizedBox(height: 14),
                 TextFormField(
+                  key: ValueKey('number-${form.fillGeneration}'),
                   initialValue: form.cardNumber,
                   style: fieldText.copyWith(letterSpacing: 1.5, fontFeatures: AppText.tabular),
                   decoration: _decoration('Card number', Icons.credit_card_rounded,
@@ -200,6 +247,7 @@ class _AddCardSheetState extends State<_AddCardSheet> {
                 ),
                 const SizedBox(height: 14),
                 TextFormField(
+                  key: ValueKey('holder-${form.fillGeneration}'),
                   initialValue: form.cardHolderName,
                   style: fieldText,
                   decoration: _decoration('Name on card', Icons.person_outline_rounded),
@@ -213,6 +261,7 @@ class _AddCardSheetState extends State<_AddCardSheet> {
                 Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
                   Expanded(
                     child: TextFormField(
+                      key: ValueKey('expiry-${form.fillGeneration}'),
                       initialValue: form.expiryDate,
                       style: fieldText,
                       decoration: _decoration('Expiry', Icons.event_outlined, hint: 'MM/YY'),
@@ -270,6 +319,13 @@ class _AddCardSheetState extends State<_AddCardSheet> {
                 ),
               ]),
             ),
+            const SizedBox(height: 18),
+            const SectionLabel('Bill reminder · optional'),
+            BillReminderPicker(
+              billDay: form.billDay,
+              remindDaysBefore: form.remindDaysBefore,
+              onChanged: form.setBilling,
+            ),
             const SizedBox(height: 26),
             GradientButton(
               label: _saving ? 'Saving…' : 'Add to wallet',
@@ -278,6 +334,45 @@ class _AddCardSheetState extends State<_AddCardSheet> {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _ScanButton extends StatelessWidget {
+  const _ScanButton({required this.onTap});
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Pressable(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.fromLTRB(14, 12, 16, 12),
+        decoration: BoxDecoration(
+          color: AppColors.lime.withValues(alpha: 0.08),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: AppColors.lime.withValues(alpha: 0.45)),
+        ),
+        child: Row(children: [
+          Container(
+            width: 38,
+            height: 38,
+            decoration: const BoxDecoration(shape: BoxShape.circle, color: AppColors.lime),
+            child: const Icon(Icons.contactless_outlined, color: AppColors.ink, size: 22),
+          ),
+          const SizedBox(width: 14),
+          const Expanded(
+            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Text('Scan card with NFC',
+                  style: TextStyle(fontSize: 15.5, fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
+              SizedBox(height: 2),
+              Text('Tap it on your phone to fill the number and expiry',
+                  style: TextStyle(fontSize: 12.5, color: AppColors.textSecondary)),
+            ]),
+          ),
+          const Icon(Icons.chevron_right_rounded, color: AppColors.textTertiary),
+        ]),
       ),
     );
   }

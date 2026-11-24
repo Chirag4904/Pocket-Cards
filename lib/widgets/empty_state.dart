@@ -80,7 +80,7 @@ class _FloatingFanState extends State<_FloatingFan>
       builder: (context, _) {
         final t = _c.value * 2 * math.pi;
         return Stack(alignment: Alignment.center, children: [
-          GlowOrb(color: AppColors.violet, size: 300, opacity: 0.28),
+          GlowOrb(color: AppColors.lime, size: 300, opacity: 0.14),
           for (var i = 0; i < 3; i++)
             Transform.translate(
               offset: Offset((i - 1) * 34.0, math.sin(t + i * 1.2) * 7 - (2 - i) * 6),
@@ -99,7 +99,7 @@ class _FloatingFanState extends State<_FloatingFan>
             left: 46,
             bottom: 24 + math.cos(t * 2) * 4,
             child: Icon(Icons.auto_awesome,
-                color: AppColors.pink.withValues(alpha: 0.7), size: 14),
+                color: AppColors.mint.withValues(alpha: 0.7), size: 14),
           ),
         ]);
       },

@@ -3,8 +3,10 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
+import '../demo.dart';
 import '../models/wallet_card.dart';
 import '../secure_card_service.dart';
+import '../services/bill_reminders.dart';
 import '../theme/card_skins.dart';
 
 /// Owns the list of saved cards. Every mutation is written straight back to
@@ -37,6 +39,13 @@ class WalletProvider extends ChangeNotifier {
       debugPrint('Bank mapping not loaded: $e');
     }
 
+    if (kDemoMode) {
+      _cards = [...kDemoCards];
+      _loaded = true;
+      notifyListeners();
+      return;
+    }
+
     try {
       final stored = await _storage.getCards();
       var migrated = false;
@@ -51,6 +60,7 @@ class WalletProvider extends ChangeNotifier {
       ];
       _sortPinned();
       if (migrated) await _persist();
+      BillReminders.sync(_cards); // refresh the queue on every launch
     } catch (e) {
       debugPrint('Cards not loaded: $e');
       _cards = [];
@@ -75,6 +85,8 @@ class WalletProvider extends ChangeNotifier {
     required String skinId,
     required double limit,
     LogoStyle logoStyle = LogoStyle.boxed,
+    int? billDay,
+    int? remindDaysBefore,
   }) async {
     final card = WalletCard(
       id: _newId(_cards.length),
@@ -86,6 +98,8 @@ class WalletProvider extends ChangeNotifier {
       skinId: skinId,
       limit: limit,
       logoStyle: logoStyle,
+      billDay: billDay,
+      remindDaysBefore: billDay == null ? null : remindDaysBefore,
     );
     _cards.add(card);
     _sortPinned();
@@ -179,6 +193,14 @@ class WalletProvider extends ChangeNotifier {
     await _persist();
   }
 
+  Future<void> updateBilling(String id, {required int? billDay, required int? remindDaysBefore}) async {
+    final i = _cards.indexWhere((c) => c.id == id);
+    if (i < 0) return;
+    _cards[i] = _cards[i].withBilling(billDay: billDay, remindDaysBefore: remindDaysBefore);
+    notifyListeners();
+    await _persist();
+  }
+
   Future<void> updateSkin(String id, String skinId) async {
     final i = _cards.indexWhere((c) => c.id == id);
     if (i < 0) return;
@@ -200,8 +222,10 @@ class WalletProvider extends ChangeNotifier {
   }
 
   Future<void> _persist() async {
+    if (kDemoMode) return; // demo cards live in memory only
     try {
       await _storage.saveCards(_cards.map((c) => c.toMap()).toList());
+      BillReminders.sync(_cards);
     } catch (e) {
       debugPrint('Cards not saved: $e');
     }

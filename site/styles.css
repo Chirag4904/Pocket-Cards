@@ -122,6 +122,7 @@ h2 { font-size: clamp(46px, 5.6vw, 79px); }
 .privacy-panel dl > div:last-child { padding-bottom: 0; }
 .privacy-panel dt { font-weight: 700; font-size: 18px; margin-bottom: 5px; }
 .privacy-panel dd { margin: 0; color: #b1baad; font-size: 15px; line-height: 1.5; }
+.source-link { color: var(--lime); text-decoration: underline; text-underline-offset: 3px; }
 
 .footer { display: flex; align-items: center; justify-content: space-between; gap: 16px; border-top: 1px solid var(--line); padding-block: 27px; }
 .footer p { color: var(--muted); font-size: 14px; margin: 0; }

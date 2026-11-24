@@ -71,7 +71,6 @@ class _CardDetailScreenState extends State<CardDetailScreen> {
                   remindDaysBefore: current.remindDaysBefore,
                   onChanged: (day, lead) =>
                       wallet.updateBilling(card.id, billDay: day, remindDaysBefore: lead),
-                  previewCard: () => w.byId(card.id) ?? current,
                 );
               },
             ),

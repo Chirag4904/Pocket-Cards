@@ -43,3 +43,17 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Release signing secrets and build outputs (never commit)
+android/key.properties
+android/local.properties
+*.jks
+*.keystore
+*.p12
+*.aab
+*.apk
+*.ipa
+*.dSYM/
+
+# Store listing working files: raw captures, composited slides, icon exports
+store_assets/

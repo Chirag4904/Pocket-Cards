@@ -8,7 +8,6 @@ import 'package:pocket_cards/provider/wallet_provider.dart';
 import 'package:provider/provider.dart';
 
 import 'CreditCardScreen.dart';
-import 'demo.dart';
 import 'screens/onboarding_screen.dart';
 import 'services/app_services.dart';
 import 'services/bill_reminders.dart';
@@ -24,7 +23,6 @@ void main() async {
     systemNavigationBarColor: AppColors.ink,
   ));
   await Future.wait([AppPrefs.init(), CardSkins.init(), BillReminders.init()]);
-  if (kDemoMode) AppPrefs.name.value = kDemoName;
   runApp(
     MultiProvider(
       providers: [
@@ -47,17 +45,15 @@ class MyApp extends StatelessWidget {
       title: 'Pocket Cards',
       debugShowCheckedModeBanner: false,
       theme: buildAppTheme(),
-      home: kDemoMode
-          ? const CreditCardScreen()
-          : showOnboarding
-              ? Builder(
-                  builder: (context) => OnboardingScreen(
-                    onDone: () => Navigator.of(context).pushReplacement(
-                      FadeRoute(builder: (_) => const BiometricAuthScreen()),
-                    ),
-                  ),
-                )
-              : const BiometricAuthScreen(),
+      home: showOnboarding
+          ? Builder(
+              builder: (context) => OnboardingScreen(
+                onDone: () => Navigator.of(context).pushReplacement(
+                  FadeRoute(builder: (_) => const BiometricAuthScreen()),
+                ),
+              ),
+            )
+          : const BiometricAuthScreen(),
     );
   }
 }

@@ -130,30 +130,6 @@ class BillReminders {
     iOS: DarwinNotificationDetails(),
   );
 
-  static const _previewId = 9000; // outside the range sync() uses
-
-  /// Shows [card]'s reminder right now, exactly as it will look, so people
-  /// can see it without waiting for the date. Returns false if notifications
-  /// aren't allowed.
-  static Future<bool> preview(WalletCard card) async {
-    if (!_ready || !card.hasReminder) return false;
-    if (!await requestPermission()) return false;
-    try {
-      final at = upcoming(
-        billDay: card.billDay!,
-        daysBefore: card.remindDaysBefore!,
-        from: DateTime.now(),
-        count: 1,
-      ).first;
-      final billDate = DateTime(at.year, at.month, at.day + card.remindDaysBefore!);
-      await _plugin.show(_previewId, title(card), body(card, billDate), _details);
-      return true;
-    } catch (e) {
-      debugPrint('Preview not shown: $e');
-      return false;
-    }
-  }
-
   static String title(WalletCard card) {
     final name = card.bank.isEmpty ? 'Card' : card.bank;
     final d = card.remindDaysBefore ?? 0;

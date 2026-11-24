@@ -3,7 +3,6 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
-import '../demo.dart';
 import '../models/wallet_card.dart';
 import '../secure_card_service.dart';
 import '../services/bill_reminders.dart';
@@ -37,13 +36,6 @@ class WalletProvider extends ChangeNotifier {
       _bankCodes = Map<String, String>.from(json.decode(raw) as Map);
     } catch (e) {
       debugPrint('Bank mapping not loaded: $e');
-    }
-
-    if (kDemoMode) {
-      _cards = [...kDemoCards];
-      _loaded = true;
-      notifyListeners();
-      return;
     }
 
     try {
@@ -222,7 +214,6 @@ class WalletProvider extends ChangeNotifier {
   }
 
   Future<void> _persist() async {
-    if (kDemoMode) return; // demo cards live in memory only
     try {
       await _storage.saveCards(_cards.map((c) => c.toMap()).toList());
       BillReminders.sync(_cards);

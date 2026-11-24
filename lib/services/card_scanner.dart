@@ -5,8 +5,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_nfc_kit/flutter_nfc_kit.dart';
 
-import '../demo.dart';
-
 /// What a contactless read can recover. The CVV is never on the chip, and
 /// many cards no longer carry the holder's name either.
 class ScannedCard {
@@ -34,7 +32,6 @@ class CardScanner {
 
   /// Whether to offer scanning at all (the phone has NFC, even if it's off).
   static Future<bool> isSupported() async {
-    if (kDemoMode) return true; // store screenshots, captured on a simulator
     if (!Platform.isAndroid) return false;
     try {
       return await FlutterNfcKit.nfcAvailability != NFCAvailability.not_supported;
@@ -44,10 +41,6 @@ class CardScanner {
   }
 
   static Future<ScannedCard> scan({Duration timeout = const Duration(seconds: 30)}) async {
-    if (kDemoMode) {
-      await Future.delayed(const Duration(seconds: 6));
-      return kDemoScannedCard;
-    }
     final availability = await FlutterNfcKit.nfcAvailability;
     if (availability == NFCAvailability.disabled) {
       throw const CardScanException("NFC is turned off. Turn it on in your phone's settings, then try again.");
@@ -98,7 +91,6 @@ class CardScanner {
 
   /// Stops waiting for a card (the user closed the scan sheet).
   static Future<void> cancel() async {
-    if (kDemoMode) return;
     try {
       await FlutterNfcKit.finish();
     } catch (_) {}

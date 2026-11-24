@@ -1,4 +1,4 @@
-"""Builds the 6 Play Store listing images (1080x1920) from real app captures.
+"""Builds the 8 Play Store listing images (1080x1920) from real app captures.
 
 Usage: python3 store_assets/build_slides.py
 Inputs: store_assets/raw/*.png (simulator captures, demo mode) and
@@ -74,6 +74,15 @@ h1 {{ font-family: Doto; font-variation-settings: 'wght' 900, 'ROND' 100; font-w
 .ico {{ width: 30px; height: 30px; color: #d4f46a; }}
 .fade {{ position: absolute; left: 0; right: 0; bottom: 0; z-index: 3;
   background: linear-gradient(180deg, transparent, #07080c 70%); }}
+
+/* a magnified slice of the real screen, lifted out of the phone */
+.zoom {{ position: absolute; z-index: 5; background-repeat: no-repeat; background-color: #13161e;
+  border: 2px solid rgba(255,255,255,.16);
+  box-shadow: 0 0 0 10px rgba(212,244,106,.07), 0 60px 110px rgba(0,0,0,.7), 0 18px 30px rgba(0,0,0,.4); }}
+.zoom::after {{ content: ''; position: absolute; inset: 0; border-radius: inherit;
+  background: linear-gradient(160deg, rgba(255,255,255,.10), transparent 35%); pointer-events: none; }}
+.ripple {{ position: absolute; z-index: 1; border-radius: 50%; border: 3px solid #d4f46a;
+  transform: translate(-50%,-50%); }}
 """
 
 
@@ -93,6 +102,32 @@ def pop(part, left, top, width, transform, extra=""):
     return (
         f'<div class="pop" style="left:{left}px;top:{top}px;width:{width}px;transform:{transform};{extra}">'
         f'<img src="file://{ROOT}/parts/{part}"></div>'
+    )
+
+
+def _size(img):
+    from PIL import Image
+    return Image.open(ROOT / "raw" / img).size
+
+
+def zoom(img, box, left, top, width, transform="", radius=40):
+    """Crops box=(x, y, w, h) of a raw capture and shows it magnified in its own frame."""
+    x, y, w, h = box
+    iw, ih = _size(img)
+    k = width / w
+    return (
+        f'<div class="zoom" style="left:{left}px;top:{top}px;width:{width}px;height:{h * k:.0f}px;'
+        f'border-radius:{radius}px;transform:{transform};'
+        f"background-image:url('file://{ROOT}/raw/{img}');"
+        f'background-size:{iw * k:.0f}px {ih * k:.0f}px;background-position:-{x * k:.0f}px -{y * k:.0f}px"></div>'
+    )
+
+
+def ripples(cx, cy, sizes=(180, 300, 430, 570)):
+    """Contactless waves, fading outward."""
+    return "".join(
+        f'<div class="ripple" style="left:{cx}px;top:{cy}px;width:{d}px;height:{d}px;opacity:{0.75 - i * 0.18:.2f}"></div>'
+        for i, d in enumerate(sizes)
     )
 
 
@@ -150,21 +185,48 @@ SLIDES = {
     + chip("Masked by default", 560, 975, "lock", 3)
     + '<div class="fade" style="height:110px"></div>',
 
-    # 4 — personalisation: a ring of skins orbiting the phone
-    "04_yours": blobs((-200, 600, 900, "rgba(79,224,176,.14)"), (500, 1200, 900, "rgba(79,224,176,.12)"),
+    # 4 — NFC: tap the card, the form fills itself; the filled card pops out
+    "04_scan": blobs((300, 1200, 1000, "rgba(212,244,106,.16)"), (-300, 700, 800, "rgba(79,224,176,.12)"))
+    + copy("04", "NFC SCAN", 'Just tap<br>your <span class="g">card.</span>',
+           "Hold a card to the back of your phone. Number and expiry fill themselves.")
+    + ripples(735, 1700, sizes=(420, 620, 830, 1040))
+    + phone("09_scanning.png", 420, 810, 600, "perspective(2600px) rotateY(-10deg)")
+    + zoom("10_scanned.png", (54, 590, 1098, 700), 20, 900, 640,
+           "perspective(1600px) rotateY(20deg) rotateX(8deg) rotateZ(-8deg)", radius=34)
+    + zoom("10_scanned.png", (54, 2140, 1098, 140), 40, 1600, 600,
+           "perspective(1600px) rotateY(12deg) rotateZ(-2deg)", radius=24)
+    + chip("Android · NFC", 650, 830, "dot", 4)
+    + chip("CVV stays private", 60, 1900, "lock", -2)
+    + '<div class="fade" style="height:110px"></div>',
+
+    # 5 — bill reminders: the real notification pops out above the phone
+    "05_remind": blobs((460, 700, 1000, "rgba(212,244,106,.16)"), (-300, 1300, 900, "rgba(79,224,176,.12)"))
+    + copy("05", "BILL REMINDERS", 'Never miss<br>a <span class="g">bill date.</span>',
+           "Pick the day your bill comes. Get a nudge before it, sent by your phone.")
+    + phone("11_reminder.png", 200, 1010, 620, "perspective(2600px) rotateY(12deg)")
+    + zoom("12_notification.png", (24, 174, 1164, 204), 50, 900, 980,
+           "perspective(1600px) rotateX(10deg) rotateZ(-2deg)", radius=56)
+    + zoom("11_reminder.png", (40, 1700, 960, 420), 480, 1500, 560,
+           "perspective(1600px) rotateY(-18deg) rotateZ(4deg)", radius=30)
+    + chip("No server needed", 610, 1180, "lock", 3)
+    + '<div class="fade" style="height:110px"></div>',
+
+    # 6 — personalisation: skins orbit the phone, the picker pops out
+    "06_yours": blobs((-200, 600, 900, "rgba(79,224,176,.14)"), (500, 1200, 900, "rgba(79,224,176,.12)"),
                       (300, 900, 600, "rgba(212,244,106,.10)"))
-    + copy("04", "PICK A VIBE", 'Make it<br><span class="g">yours.</span>',
+    + copy("06", "PICK A VIBE", 'Make it<br><span class="g">yours.</span>',
            "Gradients, artwork or your own photo, with logo styles to match.")
     + phone("06_add.png", 250, 860, 580, "perspective(2600px) rotateX(6deg)")
     + pop("orbit.png", -150, 1090, 470, "perspective(1500px) rotateY(30deg) rotateZ(-18deg)")
     + pop("lumen.png", 690, 820, 450, "perspective(1500px) rotateY(-30deg) rotateZ(16deg)")
-    + pop("fern.png", -130, 1500, 480, "perspective(1500px) rotateY(28deg) rotateZ(12deg)")
-    + pop("mono.png", 680, 1460, 480, "perspective(1500px) rotateY(-28deg) rotateZ(-12deg)")
+    + pop("mono.png", 680, 1500, 480, "perspective(1500px) rotateY(-28deg) rotateZ(-12deg)")
+    + zoom("06_add.png", (36, 1365, 1140, 330), 40, 1560, 820,
+           "perspective(1600px) rotateY(14deg) rotateZ(-3deg)", radius=30)
     + '<div class="fade" style="height:140px"></div>',
 
-    # 5 — sharing: the generated image pops out of the share sheet
-    "05_share": blobs((-260, 800, 1000, "rgba(79,224,176,.10)"), (480, 600, 900, "rgba(79,224,176,.14)"))
-    + copy("05", "SHARE · COPY", 'Share it<br><span class="g">your way.</span>',
+    # 7 — sharing: the generated image pops out of the share sheet
+    "07_share": blobs((-260, 800, 1000, "rgba(79,224,176,.10)"), (480, 600, 900, "rgba(79,224,176,.14)"))
+    + copy("07", "SHARE · COPY", 'Share it<br><span class="g">your way.</span>',
            "Send a card as an image, full or masked, or copy every detail at once.")
     + phone("05_share.png", 440, 900, 580, "perspective(2600px) rotateY(-14deg)")
     + pop("sharecomp.png", 10, 1100, 510, "perspective(1500px) rotateY(24deg) rotateZ(-6deg)")
@@ -172,9 +234,9 @@ SLIDES = {
     + chip("Copy all details", 600, 790, "dot", 3)
     + '<div class="fade" style="height:90px"></div>',
 
-    # 6 — backups: the lock pops out of the backup sheet
-    "06_backup": blobs((-200, 900, 1000, "rgba(212,244,106,.18)"), (520, 700, 800, "rgba(79,224,176,.10)"))
-    + copy("06", "BACKUP · RESTORE", 'Back up with<br>a <span class="g">password.</span>',
+    # 8 — backups: the lock pops out of the backup sheet
+    "08_backup": blobs((-200, 900, 1000, "rgba(212,244,106,.18)"), (520, 700, 800, "rgba(79,224,176,.10)"))
+    + copy("08", "BACKUP · RESTORE", 'Back up with<br>a <span class="g">password.</span>',
            "Encrypted backups you own. Switch phones without losing a single card.")
     + phone("07_backup_clean.png", 220, 940, 640, "perspective(2600px) rotateX(10deg)")
     + '<div class="pop" style="left:690px;top:880px;width:300px;height:300px;'
@@ -191,8 +253,8 @@ SLIDES = {
 
 
 # How far each composition is lifted to close the gap under the headline.
-SHIFT = {"01_hero": 110, "02_flip": 240, "03_private": 230, "04_yours": 110,
-         "05_share": 120, "06_backup": 40}
+SHIFT = {"01_hero": 110, "02_flip": 240, "03_private": 230, "04_scan": 200, "05_remind": 160,
+         "06_yours": 110, "07_share": 120, "08_backup": 40}
 
 
 def lift(name, body):
@@ -231,28 +293,31 @@ FEATURE_CSS = CSS.replace("width: 1080px; height: 1920px;", "width: 1024px; heig
 
 
 def build_feature():
-    """1024x500 Play feature graphic, rendered at 2x then downsampled for crisp edges."""
-    fan = [  # back to front: (part, rotation deg, x shift px)
-        ("mono.png", -26, -30), ("fern.png", -13, -12), ("lumen.png", 0, 4),
-        ("orbit.png", 13, 20), ("nova_front.png", 26, 34),
-    ]
-    cards = "".join(
-        f'<div class="pop" style="transform:translateX({dx}px) rotate({r}deg) translateZ({i * 6}px)">'
-        f'<img src="file://{ROOT}/parts/{p}"></div>'
-        for i, (p, r, dx) in enumerate(fan)
-    )
+    """1024x500 Play feature graphic, rendered at 2x then downsampled for crisp edges.
+
+    Wordmark on the left; on the right the real wallet screen, with a card
+    and the real bill-reminder notification popping out of it.
+    """
+    phone_html = phone("01_home.png", 0, 0, 600, "")
     body = (
-        blobs((-260, -300, 820, "rgba(212,244,106,.12)"), (560, -120, 700, "rgba(79,224,176,.12)"),
-              (520, 160, 620, "rgba(79,224,176,.10)"))
-        + '<div style="position:absolute;left:64px;top:78px;z-index:5;width:500px">'
-          '<div class="kicker" style="font-size:16px"><b>●</b><i style="flex-basis:34px"></i>'
-          'OFFLINE · ON-DEVICE · LOCKED</div>'
-          '<div class="wordmark" style="margin-top:26px">pocket<span class="g">.</span></div>'
-          '<div style="margin-top:20px;font-size:26px;line-height:1.3;color:#e6e9f2;font-weight:500">'
-          'Your cards, beautifully kept.<br><span style="color:#8d96aa;font-weight:400">'
-          'Encrypted on your phone.<br>Never online.</span></div></div>'
-        + chip("AES-256", 64, 410, "lock", 0).replace("font-size: 29px", "")
-        + f'<div class="fan">{cards}</div>'
+        blobs((-300, -320, 860, "rgba(212,244,106,.20)"), (560, 80, 700, "rgba(79,224,176,.14)"))
+        + '<div style="position:absolute;inset:0;opacity:.45">' + ripples(820, 300, sizes=(360, 520, 680)) + '</div>'
+        + '<div style="position:absolute;left:60px;top:70px;z-index:5;width:560px">'
+          '<div class="kicker" style="font-size:15px;gap:12px"><b>●</b><i style="flex-basis:30px"></i>'
+          'OFFLINE · NFC SCAN · REMINDERS</div>'
+          '<div class="wordmark" style="margin-top:24px">pocket<span class="g">.</span></div>'
+          '<div style="margin-top:22px;font-size:27px;line-height:1.3;color:#f4f6fb;font-weight:500">'
+          'Your cards, beautifully kept.</div>'
+          '<div style="margin-top:6px;font-size:21px;line-height:1.35;color:#8d96aa">'
+          'Encrypted on your phone. Never online.</div></div>'
+        # the phone, scaled down and tilted, running off the bottom edge
+        + f'<div style="position:absolute;left:690px;top:58px;width:600px;z-index:2;'
+          f'transform-origin:0 0;transform:scale(.42) perspective(2600px) rotateY(-14deg) rotateZ(4deg)">'
+          f'<div style="position:relative">{phone_html}</div></div>'
+        + pop("nova_front.png", 560, 236, 270, "perspective(1400px) rotateY(24deg) rotateZ(-10deg)")
+        + zoom("12_notification.png", (24, 174, 1164, 204), 580, 36, 400,
+               "perspective(1400px) rotateX(8deg) rotateZ(-3deg)", radius=26)
+        + '<div class="fade" style="height:70px;z-index:4"></div>'
     )
     body = body.replace('class="chip" style="', 'class="chip" style="font-size:20px;padding:11px 20px;')
     html = ROOT / ".feature.html"

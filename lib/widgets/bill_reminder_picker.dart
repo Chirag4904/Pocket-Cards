@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../models/wallet_card.dart';
 import '../services/app_services.dart';
 import '../services/bill_reminders.dart';
 import '../theme/app_theme.dart';
@@ -15,11 +16,16 @@ class BillReminderPicker extends StatefulWidget {
     required this.billDay,
     required this.remindDaysBefore,
     required this.onChanged,
+    this.previewCard,
   });
 
   final int? billDay;
   final int? remindDaysBefore;
   final void Function(int? billDay, int? remindDaysBefore) onChanged;
+
+  /// Builds the card to preview a reminder for. When set, a "Send a test
+  /// reminder" button appears once a reminder is on.
+  final WalletCard Function()? previewCard;
 
   @override
   State<BillReminderPicker> createState() => _BillReminderPickerState();
@@ -46,6 +52,18 @@ class _BillReminderPickerState extends State<BillReminderPicker> {
     Haptics.tap();
     widget.onChanged(widget.billDay, days);
     if (days != null) _ensurePermission();
+  }
+
+  bool _previewSent = false;
+
+  Future<void> _preview() async {
+    Haptics.tap();
+    final ok = await BillReminders.preview(widget.previewCard!());
+    if (!mounted) return;
+    setState(() {
+      _permissionDenied = !ok;
+      _previewSent = ok;
+    });
   }
 
   Future<void> _ensurePermission() async {
@@ -148,6 +166,26 @@ class _BillReminderPickerState extends State<BillReminderPicker> {
                       ),
                     ),
                   ]),
+                  if (lead != null && widget.previewCard != null) ...[
+                    const SizedBox(height: 14),
+                    OutlinedButton.icon(
+                      onPressed: _preview,
+                      icon: Icon(
+                        _previewSent ? Icons.check_rounded : Icons.notifications_active_outlined,
+                        size: 18,
+                        color: AppColors.lime,
+                      ),
+                      label: Text(
+                        _previewSent ? 'Sent · check the top of your screen' : 'Send a test reminder',
+                        style: const TextStyle(color: AppColors.textPrimary, fontSize: 14),
+                      ),
+                      style: OutlinedButton.styleFrom(
+                        side: BorderSide(color: AppColors.lime.withValues(alpha: 0.45)),
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                      ),
+                    ),
+                  ],
                 ]),
               ),
       ),

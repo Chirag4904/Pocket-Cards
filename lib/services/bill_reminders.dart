@@ -88,7 +88,8 @@ class BillReminders {
 
   static Future<void> _sync(List<WalletCard> cards) async {
     try {
-      await _plugin.cancelAll();
+      // Pending only: leave reminders already in the notification centre.
+      await _plugin.cancelAllPendingNotifications();
       final withReminders = cards.where((c) => c.hasReminder).toList();
       if (withReminders.isEmpty) return;
       final perCard = (_maxPending ~/ withReminders.length).clamp(1, 12);
@@ -101,22 +102,13 @@ class BillReminders {
           from: now,
           count: perCard,
         )) {
-          final billDate = at.add(Duration(days: card.remindDaysBefore!));
+          final billDate = DateTime(at.year, at.month, at.day + card.remindDaysBefore!);
           await _plugin.zonedSchedule(
             id++,
             title(card),
             body(card, billDate),
             tz.TZDateTime(tz.local, at.year, at.month, at.day, at.hour),
-            const NotificationDetails(
-              android: AndroidNotificationDetails(
-                _channelId,
-                'Bill reminders',
-                channelDescription: 'Reminders before a card\'s monthly bill date',
-                importance: Importance.defaultImportance,
-                priority: Priority.defaultPriority,
-              ),
-              iOS: DarwinNotificationDetails(),
-            ),
+            _details,
             // Inexact is fine for a reminder and needs no exact-alarm permission.
             androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
           );
@@ -124,6 +116,41 @@ class BillReminders {
       }
     } catch (e) {
       debugPrint('Reminders not scheduled: $e');
+    }
+  }
+
+  static const _details = NotificationDetails(
+    android: AndroidNotificationDetails(
+      _channelId,
+      'Bill reminders',
+      channelDescription: 'Reminders before a card\'s monthly bill date',
+      importance: Importance.defaultImportance,
+      priority: Priority.defaultPriority,
+    ),
+    iOS: DarwinNotificationDetails(),
+  );
+
+  static const _previewId = 9000; // outside the range sync() uses
+
+  /// Shows [card]'s reminder right now, exactly as it will look, so people
+  /// can see it without waiting for the date. Returns false if notifications
+  /// aren't allowed.
+  static Future<bool> preview(WalletCard card) async {
+    if (!_ready || !card.hasReminder) return false;
+    if (!await requestPermission()) return false;
+    try {
+      final at = upcoming(
+        billDay: card.billDay!,
+        daysBefore: card.remindDaysBefore!,
+        from: DateTime.now(),
+        count: 1,
+      ).first;
+      final billDate = DateTime(at.year, at.month, at.day + card.remindDaysBefore!);
+      await _plugin.show(_previewId, title(card), body(card, billDate), _details);
+      return true;
+    } catch (e) {
+      debugPrint('Preview not shown: $e');
+      return false;
     }
   }
 

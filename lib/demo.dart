@@ -1,4 +1,5 @@
 import 'models/wallet_card.dart';
+import 'services/card_scanner.dart';
 
 /// Store-screenshot mode. Off unless built with `--dart-define=DEMO=true`.
 /// Skips onboarding and the lock, and shows fictional sample cards held in
@@ -66,3 +67,6 @@ const List<WalletCard> kDemoCards = [
     logoStyle: LogoStyle.text,
   ),
 ];
+
+/// What the simulated NFC scan "reads" in demo mode (fictional, prefix 9).
+const kDemoScannedCard = ScannedCard(number: '9512004733186620', expiry: '04/30', holder: 'Aarav Mehta');

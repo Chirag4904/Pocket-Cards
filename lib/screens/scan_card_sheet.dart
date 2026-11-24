@@ -124,14 +124,21 @@ class _ScanSheetState extends State<_ScanSheet> with SingleTickerProviderStateMi
                   style: TextStyle(color: AppColors.textSecondary, fontSize: 15)),
             ),
           ] else
-            const Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-              Icon(Icons.lock_rounded, size: 13, color: AppColors.lime),
-              SizedBox(width: 6),
-              Flexible(
-                child: Text('reads number & expiry · nothing is charged or sent',
-                    textAlign: TextAlign.center, style: AppText.mono),
-              ),
-            ]),
+            // One short line; the icon sits inline so it stays with the text
+            // even if a large font size makes it wrap.
+            Text.rich(
+              TextSpan(children: [
+                const WidgetSpan(
+                  alignment: PlaceholderAlignment.middle,
+                  child: Padding(
+                    padding: EdgeInsets.only(right: 6),
+                    child: Icon(Icons.lock_rounded, size: 13, color: AppColors.lime),
+                  ),
+                ),
+                TextSpan(text: 'Nothing is charged or sent anywhere', style: AppText.mono),
+              ]),
+              textAlign: TextAlign.center,
+            ),
         ]),
       ),
     );

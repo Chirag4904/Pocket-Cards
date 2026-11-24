@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
+import '../models/wallet_card.dart';
 import '../provider/card_provider.dart';
 import '../provider/wallet_provider.dart';
 import '../services/app_services.dart';
@@ -325,6 +326,18 @@ class _AddCardSheetState extends State<_AddCardSheet> {
               billDay: form.billDay,
               remindDaysBefore: form.remindDaysBefore,
               onChanged: form.setBilling,
+              previewCard: () => WalletCard(
+                id: 'preview',
+                number: form.cardNumber,
+                holder: form.cardHolderName,
+                expiry: form.expiryDate,
+                cvv: '',
+                bank: form.selectedBank,
+                skinId: form.skinId,
+                limit: 0,
+                billDay: form.billDay,
+                remindDaysBefore: form.remindDaysBefore,
+              ),
             ),
             const SizedBox(height: 26),
             GradientButton(

@@ -45,6 +45,8 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Pick a photo to use as a card background. It stays on this device.</string>
 	<key>NSFaceIDUsageDescription</key>
     <string>We use Face ID to authenticate your identity</string>
 

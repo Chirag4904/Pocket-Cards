@@ -1,5 +1,7 @@
 
 import 'package:flutter/material.dart';
+import '../models/wallet_card.dart';
+import '../theme/card_skins.dart';
 
 // List<String> cardBgs = [
 //   'https://cdn.pixabay.com/photo/2022/12/01/04/40/backpacker-7628303_1280.jpg',
@@ -17,6 +19,8 @@ class CardProvider extends ChangeNotifier {
   String _cardColor = '0xFFFF0000';
   int _cardBG = 0;
   double _cardBalance = 0;
+  String _skinId = CardSkins.defaultId;
+  LogoStyle _logoStyle = LogoStyle.boxed;
 
   // Getter methods to access the fields
   String get cardNumber => _cardNumber;
@@ -27,6 +31,18 @@ class CardProvider extends ChangeNotifier {
   String get cardColor => _cardColor;
   double get cardBalance => _cardBalance;
   int get cardBG => _cardBG;
+  String get skinId => _skinId;
+  LogoStyle get logoStyle => _logoStyle;
+
+  void setLogoStyle(LogoStyle style) {
+    _logoStyle = style;
+    notifyListeners();
+  }
+
+  void setSkinId(String skinId) {
+    _skinId = skinId;
+    notifyListeners();
+  }
 
   // Setter methods to update the fields and notify listeners
   void setCardNumber(String cardNumber) {
@@ -77,6 +93,8 @@ class CardProvider extends ChangeNotifier {
     _cardColor = '0xFFFF0000';
     _cardBalance = 0;
     _cardBG = 0;
+    _skinId = CardSkins.defaultId;
+    _logoStyle = LogoStyle.boxed;
 
     notifyListeners();
   }

@@ -29,6 +29,11 @@ class SecureStorageService {
     return decodedData.map((e) => Map<String, String>.from(e)).toList();
   }
 
+  // Replace the whole list (used for reorder, pin, theme changes and undo).
+  Future<void> saveCards(List<Map<String, String>> cards) async {
+    await _storage.write(key: 'cards', value: jsonEncode(cards));
+  }
+
   // Delete a card by index
   Future<void> deleteCard(int index) async {
     List<Map<String, String>> cards = await getCards();

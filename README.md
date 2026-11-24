@@ -1,19 +1,28 @@
-# credit_card_app
+# PocketCards
 
-A new Flutter project.
+Your private, offline wallet for credit-card details and bill reminders.
 
-## Getting Started
+[Visit the website](https://pocketcards.domslittlestudio.cloud/)
 
-This project is a starting point for a Flutter application.
+PocketCards keeps the cards you choose to add on your phone. There are no accounts, cloud sync, or tracking.
 
-A few resources to get you started if this is your first Flutter project:
+## What it does
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+- Stores card details in encrypted, on-device storage guarded by Face ID, fingerprint, or device PIN.
+- Masks card numbers by default and clears copied sensitive details from the clipboard after 30 seconds.
+- Adds cards manually or scans supported cards over NFC when the phone supports it.
+- Schedules optional monthly bill reminders as local phone notifications.
+- Lets you personalize cards with built-in skins or one of your photos.
+- Shares a card image with its number and CVV hidden by default.
+- Creates and restores password-protected `.pcbackup` wallet backups.
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+## App previews
+
+All screenshots use the app's fictional demo data.
+
+| Wallet | Card details | Bill reminder |
+| --- | --- | --- |
+| <img src="docs/screenshots/wallet.webp" alt="PocketCards wallet showing a stack of fictional cards" width="240"> | <img src="docs/screenshots/card-details.webp" alt="PocketCards card details screen with the number masked" width="240"> | <img src="docs/screenshots/bill-reminder.webp" alt="PocketCards bill reminder settings" width="240"> |
 
 ## License
 

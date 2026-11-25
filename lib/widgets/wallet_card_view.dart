@@ -62,6 +62,7 @@ class WalletCardFace extends StatelessWidget {
     this.back = false,
     this.light = Offset.zero,
     this.shadow = true,
+    this.lite = false,
     this.sweep,
   });
 
@@ -70,6 +71,11 @@ class WalletCardFace extends StatelessWidget {
   final bool back;
   final Offset light;
   final bool shadow;
+
+  /// Cheaper paint for lists where many faces are on screen at once: a single
+  /// small blur instead of two large ones (blurs are the costliest thing on
+  /// the card to rasterise).
+  final bool lite;
 
   /// 0..1 progress of a one-off holographic glint crossing the card.
   final double? sweep;
@@ -86,7 +92,15 @@ class WalletCardFace extends StatelessWidget {
         return DecoratedBox(
           decoration: BoxDecoration(
             borderRadius: radius,
-            boxShadow: shadow
+            boxShadow: shadow && lite
+                ? [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.5),
+                      blurRadius: 14 * s,
+                      offset: Offset(0, -3 * s),
+                    ),
+                  ]
+                : shadow
                 ? [
                     BoxShadow(
                       color: Colors.black.withValues(alpha: 0.55),

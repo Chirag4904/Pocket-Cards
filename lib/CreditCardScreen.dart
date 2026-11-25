@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show ValueListenable;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -128,33 +129,51 @@ class _CreditCardScreenState extends State<CreditCardScreen> {
     if (name != null) AppPrefs.setName(name);
   }
 
-  Future<void> _showMenu(int count) async {
-    final choice = await showModalBottomSheet<String>(
+  /// Small popover anchored under the three-dot button.
+  Future<void> _showMenu(BuildContext anchor, int count) async {
+    final button = anchor.findRenderObject() as RenderBox;
+    final overlay = Overlay.of(context).context.findRenderObject() as RenderBox;
+    final topLeft = button.localToGlobal(Offset(0, button.size.height + 6),
+        ancestor: overlay);
+    final bottomRight = button
+        .localToGlobal(button.size.bottomRight(Offset.zero), ancestor: overlay);
+    final position = RelativeRect.fromRect(
+        Rect.fromPoints(topLeft, bottomRight), Offset.zero & overlay.size);
+
+    PopupMenuItem<String> item(String value, IconData icon, String label) =>
+        PopupMenuItem<String>(
+          value: value,
+          height: 46,
+          child: Row(children: [
+            Icon(icon, size: 19, color: AppColors.lime),
+            const SizedBox(width: 12),
+            Text(label,
+                style: const TextStyle(
+                    color: AppColors.textPrimary,
+                    fontSize: 15,
+                    fontWeight: FontWeight.w500)),
+          ]),
+        );
+
+    Haptics.tap();
+    final choice = await showMenu<String>(
       context: context,
-      builder: (context) => Padding(
-        padding: const EdgeInsets.fromLTRB(12, 0, 12, 24),
-        child: Column(mainAxisSize: MainAxisSize.min, children: [
-          if (count > 1)
-            _MenuRow(
-              icon: Icons.swap_vert_rounded,
-              title: 'Arrange & pin',
-              subtitle: 'Reorder cards, keep favourites on top',
-              onTap: () => Navigator.pop(context, 'arrange'),
-            ),
-          _MenuRow(
-            icon: Icons.lock_rounded,
-            title: 'Back up cards',
-            subtitle: 'Export an encrypted, password-protected file',
-            onTap: () => Navigator.pop(context, 'export'),
-          ),
-          _MenuRow(
-            icon: Icons.settings_backup_restore_rounded,
-            title: 'Restore from backup',
-            subtitle: 'Import cards from a backup file',
-            onTap: () => Navigator.pop(context, 'import'),
-          ),
-        ]),
+      position: position,
+      color: AppColors.surfaceHigh,
+      elevation: 12,
+      constraints: const BoxConstraints(minWidth: 190),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side: const BorderSide(color: AppColors.stroke),
       ),
+      items: [
+        if (count > 1) ...[
+          item('arrange', Icons.swap_vert_rounded, 'Arrange and pin'),
+          const PopupMenuDivider(height: 1),
+        ],
+        item('export', Icons.lock_rounded, 'Back up'),
+        item('import', Icons.settings_backup_restore_rounded, 'Restore'),
+      ],
     );
     if (!mounted) return;
     switch (choice) {
@@ -167,10 +186,6 @@ class _CreditCardScreenState extends State<CreditCardScreen> {
         startImport(context);
     }
   }
-
-  /// Opens the peek strip towards a full card as the list is overstretched.
-  static double _fan(double base, double stretch) =>
-      base + (0.62 - base) * Curves.easeOut.transform(stretch);
 
   static String _timeGreeting() {
     final h = DateTime.now().hour;
@@ -214,7 +229,7 @@ class _CreditCardScreenState extends State<CreditCardScreen> {
                   child: _Header(
                     greeting: _timeGreeting(),
                     onEditName: _editName,
-                    onMenu: () => _showMenu(cards.length),
+                    onMenu: (anchor) => _showMenu(anchor, cards.length),
                   ),
                 ),
               ),
@@ -248,35 +263,34 @@ class _CreditCardScreenState extends State<CreditCardScreen> {
                   padding: EdgeInsets.fromLTRB(24, 24, 24, 14),
                   sliver: SliverToBoxAdapter(child: SectionLabel('Your cards')),
                 ),
-                ValueListenableBuilder<double>(
-                  valueListenable: _stretch,
-                  builder: (context, stretch, _) => SliverPadding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20),
-                    sliver: SliverList.builder(
-                      itemCount: cards.length,
-                      itemBuilder: (context, i) {
-                        final card = cards[i];
-                        final isLast = i == cards.length - 1;
-                        return Entrance(
-                          key: ValueKey('in-${card.id}'),
-                          delay: Duration(
-                              milliseconds: stagger ? 120 + i * 70 : 0),
-                          offset: 70,
-                          child: _StackedCard(
-                            key: ValueKey(card.id),
-                            card: card,
-                            logoAsset: wallet.logoAssetFor(card.bank),
-                            width: width,
-                            peek: isLast
-                                ? 1.0
-                                : _fan(
-                                    cards.length == 2 ? 0.40 : 0.30, stretch),
-                            onTap: () => _open(card),
-                            onDelete: () => _delete(card),
-                          ),
-                        );
-                      },
-                    ),
+                // The overscroll "fan" is driven inside each card by [_stretch],
+                // so pulling down only re-lays-out the strips; it never
+                // rebuilds the card faces.
+                SliverPadding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  sliver: SliverList.builder(
+                    itemCount: cards.length,
+                    itemBuilder: (context, i) {
+                      final card = cards[i];
+                      final isLast = i == cards.length - 1;
+                      return Entrance(
+                        key: ValueKey('in-${card.id}'),
+                        delay:
+                            Duration(milliseconds: stagger ? 120 + i * 70 : 0),
+                        offset: 70,
+                        child: _StackedCard(
+                          key: ValueKey(card.id),
+                          card: card,
+                          logoAsset: wallet.logoAssetFor(card.bank),
+                          width: width,
+                          stretch: _stretch,
+                          basePeek:
+                              isLast ? null : (cards.length == 2 ? 0.40 : 0.30),
+                          onTap: () => _open(card),
+                          onDelete: () => _delete(card),
+                        ),
+                      );
+                    },
                   ),
                 ),
                 SliverToBoxAdapter(
@@ -308,7 +322,7 @@ class _Header extends StatelessWidget {
 
   final String greeting;
   final VoidCallback onEditName;
-  final VoidCallback onMenu;
+  final void Function(BuildContext anchor) onMenu;
 
   @override
   Widget build(BuildContext context) {
@@ -333,8 +347,12 @@ class _Header extends StatelessWidget {
           ]),
         ),
       ),
-      GlassIconButton(
-          icon: Icons.more_horiz_rounded, tooltip: 'More', onTap: onMenu),
+      Builder(
+        builder: (anchor) => GlassIconButton(
+            icon: Icons.more_horiz_rounded,
+            tooltip: 'More',
+            onTap: () => onMenu(anchor)),
+      ),
     ]);
   }
 }
@@ -444,7 +462,8 @@ class _StackedCard extends StatefulWidget {
     required this.card,
     required this.logoAsset,
     required this.width,
-    required this.peek,
+    required this.stretch,
+    required this.basePeek,
     required this.onTap,
     required this.onDelete,
   });
@@ -452,7 +471,13 @@ class _StackedCard extends StatefulWidget {
   final WalletCard card;
   final String? logoAsset;
   final double width;
-  final double peek;
+
+  /// 0..1 overscroll fan-out, shared by every card in the stack.
+  final ValueListenable<double> stretch;
+
+  /// Fraction of the card left visible when stacked; null = the last card,
+  /// which always shows in full.
+  final double? basePeek;
   final VoidCallback onTap;
   final VoidCallback onDelete;
 
@@ -510,9 +535,10 @@ class _StackedCardState extends State<_StackedCard> {
           }
         },
         onDismissed: (_) => widget.onDelete(),
-        child: Align(
-          alignment: Alignment.topCenter,
-          heightFactor: widget.peek,
+        child: ValueListenableBuilder<double>(
+          valueListenable: widget.stretch,
+          // The face is built once and handed through as `child`, so a fan
+          // update only changes the strip height.
           child: SizedBox(
             width: widget.width,
             child: Pressable(
@@ -521,72 +547,50 @@ class _StackedCardState extends State<_StackedCard> {
               child: Hero(
                 tag: 'card-${widget.card.id}',
                 flightShuttleBuilder: cardFlightShuttle,
-                child: WalletCardFace(
-                  data: CardFaceData.fromCard(widget.card,
-                      logoAsset: widget.logoAsset),
+                // Isolated layer: the face is rasterised once and then only
+                // moved while scrolling or squeezed by the press animation.
+                child: RepaintBoundary(
+                  child: WalletCardFace(
+                    lite: true,
+                    data: CardFaceData.fromCard(widget.card,
+                        logoAsset: widget.logoAsset),
+                  ),
                 ),
               ),
             ),
           ),
+          builder: (context, stretch, face) {
+            final base = widget.basePeek;
+            final peek = base == null
+                ? 1.0
+                : base + (0.62 - base) * Curves.easeOut.transform(stretch);
+            // Everything below the visible strip is covered by the next card,
+            // so don't paint it. The clip keeps room above and to the sides
+            // for the card's shadow.
+            return ClipRect(
+              clipper: const _StripClipper(),
+              child: Align(
+                alignment: Alignment.topCenter,
+                heightFactor: peek,
+                child: face,
+              ),
+            );
+          },
         ),
       ),
     ]);
   }
 }
 
-class _MenuRow extends StatelessWidget {
-  const _MenuRow({
-    required this.icon,
-    required this.title,
-    required this.subtitle,
-    required this.onTap,
-  });
-
-  final IconData icon;
-  final String title;
-  final String subtitle;
-  final VoidCallback onTap;
+/// Clips to the strip's own height but lets the shadow spill out above and to
+/// the sides.
+class _StripClipper extends CustomClipper<Rect> {
+  const _StripClipper();
 
   @override
-  Widget build(BuildContext context) {
-    return Pressable(
-      onTap: onTap,
-      scale: 0.98,
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 8),
-        padding: const EdgeInsets.all(14),
-        decoration: BoxDecoration(
-          color: AppColors.surfaceHigh,
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: AppColors.stroke),
-        ),
-        child: Row(children: [
-          Container(
-            width: 42,
-            height: 42,
-            decoration: BoxDecoration(
-              color: AppColors.ink,
-              borderRadius: BorderRadius.circular(14),
-            ),
-            child: Icon(icon, color: AppColors.textPrimary, size: 20),
-          ),
-          const SizedBox(width: 14),
-          Expanded(
-            child:
-                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text(title,
-                  style: const TextStyle(
-                      color: AppColors.textPrimary,
-                      fontSize: 15.5,
-                      fontWeight: FontWeight.w500)),
-              const SizedBox(height: 2),
-              Text(subtitle, style: AppText.mono.copyWith(fontSize: 11.5)),
-            ]),
-          ),
-          const Icon(Icons.chevron_right_rounded,
-              color: AppColors.textTertiary),
-        ]),
-      ),
-    );
-  }
+  Rect getClip(Size size) =>
+      Rect.fromLTRB(-40, -40, size.width + 40, size.height);
+
+  @override
+  bool shouldReclip(covariant CustomClipper<Rect> oldClipper) => false;
 }

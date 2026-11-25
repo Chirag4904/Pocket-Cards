@@ -128,16 +128,23 @@ class CardSkins {
     return File('$photosDir/${skinId.substring(6)}');
   }
 
+  static final _photoSkins = <String, CardSkin>{};
+  static final _artwork = artwork;
+
   static CardSkin resolve(String? id) {
     id ??= defaultId;
     if (id.startsWith('img:')) {
       final n = int.tryParse(id.substring(4)) ?? 0;
-      if (n >= 1 && n <= 4) return artwork[n - 1];
+      if (n >= 1 && n <= 4) return _artwork[n - 1];
     }
     if (id.startsWith('photo:')) {
       final file = photoFile(id);
+      // Memoised: this runs on every card rebuild, and a sync disk check per
+      // card per rebuild is exactly what makes scrolling stutter.
+      final cached = _photoSkins[id];
+      if (cached != null) return cached;
       if (file != null && file.existsSync()) {
-        return CardSkin(
+        return _photoSkins[id] = CardSkin(
           id: id,
           label: 'Photo',
           colors: const [Color(0xFF1B1F2A), Color(0xFF2B3040)],

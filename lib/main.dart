@@ -18,9 +18,10 @@ import 'widgets/ui_kit.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
-    statusBarColor: Colors.transparent,
+    // Bar colours are left to edge-to-edge (the app background shows
+    // through); setting them uses APIs deprecated in Android 15.
     statusBarIconBrightness: Brightness.light,
-    systemNavigationBarColor: AppColors.ink,
+    systemNavigationBarIconBrightness: Brightness.light,
   ));
   await Future.wait([AppPrefs.init(), CardSkins.init(), BillReminders.init()]);
   runApp(

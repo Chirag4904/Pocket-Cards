@@ -2,10 +2,13 @@ package com.doms.pocketcards
 
 import android.os.Build
 import android.os.Bundle
+import androidx.activity.enableEdgeToEdge
 import io.flutter.embedding.android.FlutterFragmentActivity
 
 class MainActivity : FlutterFragmentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
+        // Opt in to edge-to-edge explicitly (Android 15+ enforces it anyway).
+        enableEdgeToEdge()
         super.onCreate(savedInstanceState)
         requestHighestRefreshRate()
     }

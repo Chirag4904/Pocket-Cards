@@ -65,7 +65,7 @@ h2 { font-size: clamp(46px, 5.6vw, 79px); }
 }
 .hero-glow {
   position: absolute;
-  inset: -36px;
+  inset: -48px;
   background:
     linear-gradient(#d4f46a0d 1px, transparent 1px) center / 34px 34px,
     linear-gradient(90deg, #d4f46a0d 1px, transparent 1px) center / 34px 34px,
@@ -129,12 +129,12 @@ h2 { font-size: clamp(46px, 5.6vw, 79px); }
       animation-timeline: --art-visibility;
       animation-range: entry 0% exit 100%;
     }
-    .hero-glow { --scroll-depth: -28px; }
-    .orbit { --scroll-depth: -16px; }
-    .phone { --scroll-depth: -14px; }
-    .hero-card-under { --scroll-depth: clamp(10px, 1.4vw, 20px); }
-    .hero-card-top { --scroll-depth: clamp(16px, 2.5vw, 36px); }
-    .sample-stack { --scroll-depth: 20px; }
+    .hero-glow { --scroll-depth: -39px; }
+    .orbit { --scroll-depth: -22px; }
+    .phone { --scroll-depth: -20px; }
+    .hero-card-under { --scroll-depth: clamp(14px, 2vw, 28px); }
+    .hero-card-top { --scroll-depth: clamp(22px, 3.5vw, 52px); }
+    .sample-stack { --scroll-depth: 28px; }
   }
 }
 
@@ -160,6 +160,26 @@ h2 { font-size: clamp(46px, 5.6vw, 79px); }
 .privacy-panel dt { font-weight: 700; font-size: 18px; margin-bottom: 5px; }
 .privacy-panel dd { margin: 0; color: #b1baad; font-size: 15px; line-height: 1.5; }
 .source-link { color: var(--lime); text-decoration: underline; text-underline-offset: 3px; }
+
+@supports (animation-timeline: view()) and (animation-range: entry) {
+  @media (prefers-reduced-motion: no-preference) {
+    [data-scroll-reveal] {
+      animation: section-reveal auto var(--ease-out) both;
+      animation-timeline: view();
+      animation-range: entry 0% entry 62%;
+    }
+    .privacy-panel:focus-within { animation: none; }
+  }
+
+  @media (prefers-reduced-motion: no-preference) and (width > 650px) {
+    .feature + .feature[data-scroll-reveal] { animation-range: entry 8% entry 72%; }
+  }
+}
+
+@keyframes section-reveal {
+  from { opacity: .72; translate: 0 18px; }
+  to { opacity: 1; translate: 0; }
+}
 
 .footer { display: flex; align-items: center; justify-content: space-between; gap: 16px; border-top: 1px solid var(--line); padding-block: 27px; }
 .footer p { color: var(--muted); font-size: 14px; margin: 0; }

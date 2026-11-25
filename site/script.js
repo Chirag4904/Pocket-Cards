@@ -24,3 +24,65 @@ for (const swatch of swatches) {
     }
   });
 }
+
+const parallaxPreference = window.matchMedia(
+  '(prefers-reduced-motion: no-preference) and (hover: hover) and (pointer: fine)',
+);
+
+for (const scene of document.querySelectorAll('[data-parallax-scene]')) {
+  const layers = [...scene.querySelectorAll('[data-pointer-depth]')].map(layer => ({
+    layer,
+    depth: Number(layer.dataset.pointerDepth),
+  })).filter(({ depth }) => Number.isFinite(depth));
+  let animationFrame;
+  let isEnabled = false;
+
+  const reset = () => {
+    for (const { layer } of layers) {
+      layer.style.setProperty('--pointer-x', '0px');
+      layer.style.setProperty('--pointer-y', '0px');
+    }
+  };
+
+  const updateLayers = ({ clientX, clientY }) => {
+    const bounds = scene.getBoundingClientRect();
+    const pointerX = ((clientX - bounds.left) / bounds.width - 0.5) * 2;
+    const pointerY = ((clientY - bounds.top) / bounds.height - 0.5) * 2;
+
+    for (const { layer, depth } of layers) {
+      layer.style.setProperty('--pointer-x', `${pointerX * depth}px`);
+      layer.style.setProperty('--pointer-y', `${pointerY * depth}px`);
+    }
+  };
+
+  const onPointerMove = event => {
+    if (event.pointerType === 'touch') return;
+
+    cancelAnimationFrame(animationFrame);
+    animationFrame = requestAnimationFrame(() => updateLayers(event));
+  };
+
+  const onPointerLeave = () => {
+    cancelAnimationFrame(animationFrame);
+    reset();
+  };
+
+  const setEnabled = enabled => {
+    if (enabled === isEnabled) return;
+
+    isEnabled = enabled;
+    if (enabled) {
+      scene.addEventListener('pointermove', onPointerMove, { passive: true });
+      scene.addEventListener('pointerleave', onPointerLeave, { passive: true });
+      return;
+    }
+
+    scene.removeEventListener('pointermove', onPointerMove);
+    scene.removeEventListener('pointerleave', onPointerLeave);
+    cancelAnimationFrame(animationFrame);
+    reset();
+  };
+
+  parallaxPreference.addEventListener('change', event => setEnabled(event.matches));
+  setEnabled(parallaxPreference.matches);
+}
